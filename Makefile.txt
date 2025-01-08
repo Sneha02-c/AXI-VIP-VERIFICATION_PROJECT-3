@@ -1,0 +1,92 @@
+#Makefile for AXI_VIP
+RTL=../rtl/*
+work= work
+SVTB1=../env/axi_top.sv
+INC= +incdir+../env +incdir+../test +incdir+../axi_m_agt_top +incdir+../axi_s_agt_top
+SVTB2 = ../test/axi_test_pkg.sv
+COVOP = -coveropt 3 +cover=bcft
+VSIMOPT= -vopt -voptargs=+acc
+VSIMBATCH= -c -do  " log -r /* ;run -all; exit"
+VSIMBATCH1= -c -do  " log -r /* ;coverage save -onexit mem_cov1;run -all; exit"
+VSIMBATCH2= -c -do  " log -r /* ;coverage save -onexit mem_cov2;run -all; exit"
+VSIMBATCH3= -c -do  " log -r /* ;coverage save -onexit mem_cov3;run -all; exit"
+VSIMBATCH4= -c -do  " log -r /* ;coverage save -onexit mem_cov4;run -all; exit"
+VSIMBATCH5= -c -do  " log -r /* ;coverage save -onexit mem_cov5;run -all; exit"
+VSIMBATCH6= -c -do  " log -r /* ;coverage save -onexit mem_cov6;run -all; exit"
+VSIMBATCH7= -c -do  " log -r /* ;coverage save -onexit mem_cov7;run -all; exit"
+
+
+sv_cmp:
+	 vlib $(work)
+	vmap work $(work)
+	vlog -work $(work) $(RTL) $(INC) $(SVTB2) $(SVTB1) $(COVOP)
+
+run_sim:
+	vsim  $(VSIMOPT) $(VSIMCOV) $(VSIMBATCH)  -l test.log  -sv_seed random work.top +UVM_TESTNAME=axi_base_test
+
+clean:
+	rm -rf transcript* *log*  vsim.wlf fcover* covhtml* mem_cov* *.wlf modelsim.ini
+	clear
+
+run_test: clean sv_cmp run_sim
+
+run_test1:sv_cmp
+	vsim -cvgperinstance $(VSIMOPT) $(VSIMCOV) $(VSIMBATCH1)  -wlf wave_file1.wlf -l test1.log  -sv_seed random  work.top +UVM_TESTNAME=m0s0_m1s1_test
+	vcover report  -cvg  -details -nocompactcrossbins -codeAll -assert -directive -html mem_cov1
+
+view_wave1:
+	vsim -view wave_file1.wlf
+
+run_test2:sv_cmp
+	vsim -cvgperinstance $(VSIMOPT) $(VSIMCOV) $(VSIMBATCH2)  -wlf wave_file2.wlf -l test2.log  -sv_seed random  work.top +UVM_TESTNAME=m0s1_m1s0_test
+	vcover report  -cvg  -details -nocompactcrossbins -codeAll -assert -directive -html mem_cov2
+
+view_wave2:
+	vsim -view wave_file2.wlf
+
+run_test3:sv_cmp
+	vsim -cvgperinstance $(VSIMOPT) $(VSIMCOV) $(VSIMBATCH3)  -wlf wave_file3.wlf -l test3.log  -sv_seed random  work.top +UVM_TESTNAME=m0s0_m1s0_test
+	vcover report  -cvg  -details -nocompactcrossbins -codeAll -assert -directive -html mem_cov3
+
+view_wave3:
+	vsim -view wave_file3.wlf
+
+run_test4:sv_cmp
+	vsim -cvgperinstance $(VSIMOPT) $(VSIMCOV) $(VSIMBATCH4)  -wlf wave_file4.wlf -l test4.log  -sv_seed random  work.top +UVM_TESTNAME=m0s1_m1s1_test
+	vcover report  -cvg  -details -nocompactcrossbins -codeAll -assert -directive -html mem_cov4
+
+view_wave4:
+	vsim -view wave_file4.wlf
+
+report:
+	vcover merge mem_cov  mem_cov1 mem_cov2 mem_cov3 mem_cov4 mem_cov5 mem_cov6 mem_cov7
+	vcover report -cvg -details -nocompactcrossbins -codeAll -assert -directive -html -directive -html mem_cov
+
+regress: clean run_test run_test1 run_test2 run_test3 run_test4 run_test5 run_test6 run_test7 report cov
+
+cov:
+	firefox covhtmlreport/index.html&
+
+run_test5:sv_cmp
+	vsim -cvgperinstance $(VSIMOPT) $(VSIMCOV) $(VSIMBATCH5)  -wlf wave_file5.wlf -l test5.log  -sv_seed random  work.top +UVM_TESTNAME=dec_err_test
+	vcover report  -cvg  -details -nocompactcrossbins -codeAll -assert -directive -html mem_cov5
+
+view_wave5:
+	vsim -view wave_file5.wlf
+
+run_test6:sv_cmp
+	vsim -cvgperinstance $(VSIMOPT) $(VSIMCOV) $(VSIMBATCH6)  -wlf wave_file6.wlf -l test6.log  -sv_seed random  work.top +UVM_TESTNAME=burst_three_test
+	vcover report  -cvg  -details -nocompactcrossbins -codeAll -assert -directive -html mem_cov6
+
+view_wave6:
+	vsim -view wave_file6.wlf
+
+run_test7:sv_cmp
+	vsim -cvgperinstance $(VSIMOPT) $(VSIMCOV) $(VSIMBATCH7)  -wlf wave_file7.wlf -l test3.log  -sv_seed random  work.top +UVM_TESTNAME=m0s1_m1s11_test
+	vcover report -cvg -details -nocompactcrossbins -codeAll -assert -directive -html mem_cov7
+
+view_wave7:
+	vsim -view wave_file7.wlf
+
+
+
